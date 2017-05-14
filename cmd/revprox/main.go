@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"log"
 	"net/http"
@@ -22,6 +23,11 @@ func main() {
 	}
 
 	h := httputil.NewSingleHostReverseProxy(u)
+	h.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
 	log.Printf("start revprox on %s\n", *addr)
 	if err := http.ListenAndServe(*addr, h); err != nil {
 		log.Fatalf("http; %v", err)
