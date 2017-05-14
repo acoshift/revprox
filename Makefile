@@ -1,4 +1,5 @@
-build:
+.PHONY: clean
+build: clean
 	env GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/revprox -a -ldflags '-w -s' cmd/revprox/main.go
 
 dev:
@@ -6,3 +7,6 @@ dev:
 
 clean:
 	rm -rf build/
+
+upload: build
+	gsutil cp build/revprox gs://acoshift/
