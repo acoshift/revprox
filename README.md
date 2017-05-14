@@ -6,8 +6,8 @@ Lightweight reverse proxy 1 port
 - linux-amd64
 
     ```bash
-    $ curl -O https://storage.googleapis.com/acoshift/revprox
-    $ sudo chmod +x revprox
+    $ curl -O https://storage.googleapis.com/acoshift/revprox.tar.gz
+    $ tar zxf revprox.tar.gz
     $ sudo mv revprox /usr/local/bin/
     ```
 
