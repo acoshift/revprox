@@ -9,4 +9,4 @@ clean:
 	rm -rf build/
 
 upload: build
-	gsutil cp build/revprox gs://acoshift/
+	gsutil cp -a public-read build/revprox gs://acoshift/
