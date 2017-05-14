@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	addr   = flag.String("port", ":8080", "Listen address and port")
+	addr   = flag.String("addr", ":8080", "Listen address and port")
 	target = flag.String("target", "http://localhost", "Target URL")
 )
 
