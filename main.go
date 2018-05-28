@@ -10,14 +10,23 @@ import (
 	"strings"
 )
 
+const (
+	version string = "0.0.1"
+)
+
 var (
-	addr      = flag.String("addr", ":8080", "listen address and port")
-	target    = flag.String("target", "http://localhost", "target upstream url")
-	host      = flag.String("host", "", "override the host header sent to the upstream")
-	userAgent = flag.String("user-agent", "", "override the user-agent header sent to the upstream")
-	path      = flag.String("path", "", "override the request path")
-	stripUri  = flag.Bool("strip-uri", false, "strip the href path")
-	accessLog = flag.Bool("access-log", false, "enable access logging")
+	addr          = flag.String("addr", ":8080", "listen address and port")
+	target        = flag.String("target", "http://localhost", "target upstream url")
+	host          = flag.String("host", "", "override the host header sent to the upstream")
+	userAgent     = flag.String("user-agent", "", "override the user-agent header sent to the upstream")
+	path          = flag.String("path", "", "override the request path")
+	stripUri      = flag.Bool("strip-uri", false, "strip the href path")
+	hideServer    = flag.Bool("hide-server", false, "hide the upstream server in responses")
+	noCache       = flag.Bool("no-cache", false, "send no-cache header in responses")
+	extraRequest  = flag.String("extra-request", "", "extra comma-separated request headers to send to the upstream")
+	extraResponse = flag.String("extra-response", "", "extra comma-separated response headers to send back to the client")
+	accessLog     = flag.Bool("access-log", false, "enable access logging")
+	serverString  = "revprox/" + version
 )
 
 func singleJoiningSlash(a, b string) string {
@@ -30,6 +39,25 @@ func singleJoiningSlash(a, b string) string {
 		return a + "/" + b
 	}
 	return a + b
+}
+
+func modifyResponse(resp *http.Response) error {
+	if *hideServer {
+		resp.Header.Set("Server", serverString)
+	} else {
+		resp.Header.Add("Server", serverString)
+	}
+	if *noCache {
+		resp.Header.Set("Cache-Control", "no-cache")
+	}
+	if len(*extraResponse) > 0 {
+		for _, h := range strings.Split(*extraResponse, ",") {
+			s := strings.Split(h, ":")
+			resp.Header.Set(s[0], s[1])
+		}
+	}
+
+	return nil
 }
 
 func main() {
@@ -76,6 +104,12 @@ func main() {
 		} else {
 			req.URL.Path = singleJoiningSlash(u.Path, req.URL.Path)
 		}
+		if len(*extraRequest) > 0 {
+			for _, h := range strings.Split(*extraRequest, ",") {
+				s := strings.Split(h, ":")
+				req.Header.Set(s[0], s[1])
+			}
+		}
 		if *accessLog {
 			requestDump, err := httputil.DumpRequest(req, true)
 			if err != nil {
@@ -86,8 +120,9 @@ func main() {
 	}
 
 	h := &httputil.ReverseProxy{
-		Director:  director,
-		Transport: transport,
+		Director:       director,
+		Transport:      transport,
+		ModifyResponse: modifyResponse,
 	}
 
 	log.Printf("start revprox on %s\n", *addr)
