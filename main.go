@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	version string = "0.0.1"
+	version string = "1.1.0"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 	host          = flag.String("host", "", "override the host header sent to the upstream")
 	userAgent     = flag.String("user-agent", "", "override the user-agent header sent to the upstream")
 	path          = flag.String("path", "", "override the request path")
-	stripUri      = flag.Bool("strip-uri", false, "strip the href path")
+	stripURI      = flag.Bool("strip-uri", false, "strip the href path")
 	hideServer    = flag.Bool("hide-server", false, "hide the upstream server in responses")
 	noCache       = flag.Bool("no-cache", false, "send no-cache header in responses")
 	extraRequest  = flag.String("extra-request", "", "extra comma-separated request headers to send to the upstream")
@@ -95,11 +95,11 @@ func main() {
 		}
 		if len(*path) > 0 {
 			req.URL.Path = *path
-			if *stripUri {
+			if *stripURI {
 				log.Printf("warning: strip-uri used with path override, path will always be /")
 			}
 		}
-		if *stripUri {
+		if *stripURI {
 			req.URL.Path = "/"
 		} else {
 			req.URL.Path = singleJoiningSlash(u.Path, req.URL.Path)

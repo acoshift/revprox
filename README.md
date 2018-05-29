@@ -1,20 +1,19 @@
 # revprox
+
 Lightweight reverse proxy 1 port
 
 ## Installation
 
-- linux-amd64
-
-    ```bash
-    $ curl -O https://storage.googleapis.com/acoshift/revprox.tar.gz
-    $ tar zxf revprox.tar.gz
-    $ sudo mv revprox /usr/local/bin/
-    ```
-
-- go
+- Go
 
     ```bash
     $ go get -u github.com/acoshift/revprox
+    ```
+
+- Docker
+
+    ```bash
+    $ docker pull acoshift/revprox
     ```
 
 ## Build from source
