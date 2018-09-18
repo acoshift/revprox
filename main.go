@@ -20,11 +20,14 @@ var (
 	host          = flag.String("host", "", "override the host header sent to the upstream")
 	userAgent     = flag.String("user-agent", "", "override the user-agent header sent to the upstream")
 	path          = flag.String("path", "", "override the request path")
+	extraRequest  = flag.String("extra-request", "", "extra comma-separated request headers to send to the upstream")
+	extraResponse = flag.String("extra-response", "", "extra comma-separated response headers to send back to the client")
+	authRealm     = flag.String("auth-realm", "Restricted", "http basic auth realm (frontend)")
+	authUsername  = flag.String("auth-user", "admin", "http basic auth username (frontend)")
+	authPassword  = flag.String("auth-pass", "", "http basic auth password (frontend)")
 	stripURI      = flag.Bool("strip-uri", false, "strip the href path")
 	hideServer    = flag.Bool("hide-server", false, "hide the upstream server in responses")
 	noCache       = flag.Bool("no-cache", false, "send no-cache header in responses")
-	extraRequest  = flag.String("extra-request", "", "extra comma-separated request headers to send to the upstream")
-	extraResponse = flag.String("extra-response", "", "extra comma-separated response headers to send back to the client")
 	accessLog     = flag.Bool("access-log", false, "enable access logging")
 	serverString  = "revprox/" + version
 )
@@ -60,7 +63,17 @@ func modifyResponse(resp *http.Response) error {
 	return nil
 }
 
-func main() {
+func proxyHandler(w http.ResponseWriter, r *http.Request) {
+	if len(*authRealm) > 1 && len(*authUsername) > 1 && len(*authPassword) > 1 {
+		userName, password, _ := r.BasicAuth()
+
+		if userName != *authUsername || password != *authPassword {
+			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+			return
+		}
+	}
+
 	flag.Parse()
 
 	u, err := url.Parse(*target)
@@ -119,14 +132,21 @@ func main() {
 		}
 	}
 
-	h := &httputil.ReverseProxy{
+	proxy := &httputil.ReverseProxy{
 		Director:       director,
 		Transport:      transport,
 		ModifyResponse: modifyResponse,
 	}
 
+	proxy.ServeHTTP(w, r)
+}
+
+func main() {
+	http.HandleFunc("/", proxyHandler)
+
 	log.Printf("start revprox on %s\n", *addr)
-	if err := http.ListenAndServe(*addr, h); err != nil {
+
+	if err := http.ListenAndServe(*addr, nil); err != nil {
 		log.Fatalf("http; %v", err)
 	}
 }
