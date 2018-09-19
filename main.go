@@ -30,6 +30,21 @@ var (
 	noCache       = flag.Bool("no-cache", false, "send no-cache header in responses")
 	accessLog     = flag.Bool("access-log", false, "enable access logging")
 	serverString  = "revprox/" + version
+
+	origin *url.URL
+	err    error
+
+	transport = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
+	proxy = &httputil.ReverseProxy{
+		Transport:      transport,
+		ModifyResponse: modifyResponse,
+	}
 )
 
 func singleJoiningSlash(a, b string) string {
@@ -69,29 +84,15 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 
 		if userName != *authUsername || password != *authPassword {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
-			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 	}
 
-	flag.Parse()
-
-	u, err := url.Parse(*target)
-	if err != nil {
-		log.Fatalf("parse url; %v", err)
-	}
-
-	transport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-
-	targetQuery := u.RawQuery
+	targetQuery := origin.RawQuery
 	director := func(req *http.Request) {
-		req.URL.Scheme = u.Scheme
-		req.URL.Host = u.Host
+		req.URL.Scheme = origin.Scheme
+		req.URL.Host = origin.Host
 		if len(*host) > 0 {
 			req.Host = *host
 		}
@@ -115,7 +116,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 		if *stripURI {
 			req.URL.Path = "/"
 		} else {
-			req.URL.Path = singleJoiningSlash(u.Path, req.URL.Path)
+			req.URL.Path = singleJoiningSlash(origin.Path, req.URL.Path)
 		}
 		if len(*extraRequest) > 0 {
 			for _, h := range strings.Split(*extraRequest, ",") {
@@ -131,21 +132,21 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf(string(requestDump))
 		}
 	}
-
-	proxy := &httputil.ReverseProxy{
-		Director:       director,
-		Transport:      transport,
-		ModifyResponse: modifyResponse,
-	}
-
+	proxy.Director = director
 	proxy.ServeHTTP(w, r)
 }
 
 func main() {
+	flag.Parse()
+
+	// target url validation
+	origin, err = url.Parse(*target)
+	if err != nil {
+		log.Fatalf("parse url; %v", err)
+	}
+
 	http.HandleFunc("/", proxyHandler)
-
 	log.Printf("start revprox on %s\n", *addr)
-
 	if err := http.ListenAndServe(*addr, nil); err != nil {
 		log.Fatalf("http; %v", err)
 	}
