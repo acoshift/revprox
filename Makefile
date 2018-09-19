@@ -1,6 +1,6 @@
 IMAGE=acoshift/revprox
 TAG=1.1.0
-GOLANG_VERSION=1.10.2
+GOLANG_VERSION=1.11
 REPO=github.com/acoshift/revprox
 
 revprox: main.go
@@ -20,7 +20,7 @@ push-docker: clean build-docker
 	docker push $(IMAGE):$(TAG)
 
 dev:
-	go run main.go
+	go run cmd/revprox/main.go
 
 clean:
 	rm -f revprox revprox.tar.gz
