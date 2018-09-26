@@ -3,12 +3,13 @@ package revprox
 import (
 	"crypto/subtle"
 	"crypto/tls"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
 	"sync"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 // Proxy is the revprox proxy
@@ -65,7 +66,7 @@ func (p *Proxy) init() {
 		if len(p.Path) > 0 {
 			req.URL.Path = p.Path
 			if p.StripURI {
-				log.Printf("warning: strip-uri used with path override, path will always be /")
+				log.Warn("warning: strip-uri used with path override, path will always be /")
 			}
 		}
 		if p.StripURI {

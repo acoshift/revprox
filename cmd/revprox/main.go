@@ -2,11 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/acoshift/revprox"
 )
 
@@ -30,7 +29,7 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Printf("revprox %s\n", revprox.Version)
+	log.Printf("revprox %s", revprox.Version)
 
 	// target url validation
 	origin, err := url.Parse(*target)
@@ -54,7 +53,7 @@ func main() {
 		AccessLog:     *accessLog,
 	}
 
-	log.Printf("start revprox on %s\n", *addr)
+	log.Printf("start revprox on %s", *addr)
 	if err := http.ListenAndServe(*addr, proxy); err != nil {
 		log.Fatalf("revprox; %v", err)
 	}
