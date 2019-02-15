@@ -1,5 +1,5 @@
 IMAGE=acoshift/revprox
-TAG=1.2.0
+TAG=1.3.0
 GOLANG_VERSION=1.11
 REPO=github.com/acoshift/revprox
 
