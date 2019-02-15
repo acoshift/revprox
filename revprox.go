@@ -23,6 +23,7 @@ type Proxy struct {
 	Path          string
 	ExtraRequest  string
 	ExtraResponse string
+	DeleteRequest string
 	AuthRealm     string
 	AuthUsername  string
 	AuthPassword  string
@@ -78,6 +79,11 @@ func (p *Proxy) init() {
 			for _, h := range strings.Split(p.ExtraRequest, ",") {
 				s := strings.Split(h, ":")
 				req.Header.Set(s[0], s[1])
+			}
+		}
+		if len(p.DeleteRequest) > 0 {
+			for _, h := range strings.Split(p.DeleteRequest, ",") {
+				req.Header.Del(h)
 			}
 		}
 		if p.AccessLog {

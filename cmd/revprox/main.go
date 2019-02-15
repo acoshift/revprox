@@ -18,6 +18,7 @@ func main() {
 		path          = flag.String("path", "", "override the request path")
 		extraRequest  = flag.String("extra-request", "", "extra comma-separated request headers to send to the upstream")
 		extraResponse = flag.String("extra-response", "", "extra comma-separated response headers to send back to the client")
+		deleteRequest = flag.String("delete-request", "", "comma-separated request headers to be removed before sending to the upstream")
 		authRealm     = flag.String("auth-realm", "Restricted", "http basic auth realm (frontend)")
 		authUsername  = flag.String("auth-user", "admin", "http basic auth username (frontend)")
 		authPassword  = flag.String("auth-pass", "", "http basic auth password (frontend)")
@@ -44,6 +45,7 @@ func main() {
 		Path:          *path,
 		ExtraRequest:  *extraRequest,
 		ExtraResponse: *extraResponse,
+		DeleteRequest: *deleteRequest,
 		AuthRealm:     *authRealm,
 		AuthUsername:  *authUsername,
 		AuthPassword:  *authPassword,
