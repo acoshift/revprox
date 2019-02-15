@@ -4,7 +4,7 @@ GOLANG_VERSION=1.11
 REPO=github.com/acoshift/revprox
 
 revprox:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags '-w -s' -o revprox cmd/revprox/main.go
+	GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags '-w -s' -o revprox cmd/revprox/main.go
 
 build-docker:
 	docker pull golang:$(GOLANG_VERSION)
